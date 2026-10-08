@@ -1,51 +1,45 @@
+#pragma once
 
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
+#include <string>
+#include <cstddef>
+#include <string_view>
 
-struct addinfo{
-    int ai_flags;
-    int ai_family;
-    int ai_socktype;
-    int ai_protocol; // use "0" for any
-    size_t ai_addrlen;
-    struct sockaddr *ai_addr;
-    char *ai_canonname;
+namespace net {
+class WinsockRuntime {
+public:
+    WinsockRuntime();
+    ~WinsockRuntime();
 
-    struct addinfo *ai_next;
+    WinsockRuntime(const WinsockRuntime&) = delete;
+    WinsockRuntime& operator=(const WinsockRuntime&) = delete;
 };
 
-struct sockaddr{
-    unsigned short sa_family; // address family, AF_xxx
-    char sa_data[14]; // 14 bytes of protocol address
+
+class Socket {
+public:
+    ~Socket();
+
+    Socket(const Socket&) = delete;
+    Socket& operator=(const Socket&) = delete;
+    Socket(Socket&& other) noexcept;
+    Socket& operator=(Socket&& other) noexcept;
+
+    static Socket listen_on(const char* host, const char* port);
+    static Socket connect_to(const char* host, const char* port);
+    Socket accept_client() const;
+
+    void send_all(std::string_view data) const;
+    std::string receive_chunk() const;
+    void shutdown_send() const;
+
+private:
+    explicit Socket(SOCKET socket) noexcept;
+    SOCKET handle_ = INVALID_SOCKET;
 };
 
-// Ipv4 only
-struct sockaddr_in{
-    unsigned short sin_family; // address family, AF_INET
-    unsigned short sin_port; // port in network byte order
-    struct in_addr sin_addr; // internet address
-    char sin_zero[8]; // padding
-};
-struct in_addr{
-    int32_t s_addr; // 32bit for IPv4 address
-};
+std::string receive_until_end(const Socket& socket, std::size_t limit = 64 * 1024);
 
-/*IPv6 only*/
-struct sockaddr_in6{
-    u_int16_t sin6_family; 
-    u_int16_t sin6_port; // port in network byte order
-    u_int32_t sin6_flowinfo; // IPv6 flow information
-    struct in6_addr sin6_addr; 
-    uint32_t sin6_scope_id; // scope id
-};
-struct in6_addr{
-    unsigned char s6_addr[16]; // 128bit for IPv6 address
-};
-
-/**/
-struct sockaddr_storage{
-    sa_family_t ss_family; // address family
-    //all is pading
-    char __ss_pad1[_SS_PAD1SIZE];
-    int64_t __ss_align; 
-    char __ss_pad2[_SS_PAD2SIZE]; 
-}
+} // namespace net
