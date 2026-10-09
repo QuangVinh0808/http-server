@@ -216,6 +216,8 @@ static const char* status_text(int status) {
         case 431: return "Request Header Fields Too Large";
         case 501: return "Not Implemented";
         case 505: return "HTTP Version Not Supported";
+        case 201: return "Created !";
+        case 409: return "Conflic ! ";
         default: return "Internal Server Error";
     }
 }
@@ -242,7 +244,7 @@ std::string make_http_response(
     response += "Content-Length: " + std::to_string(body.size()) + "\r\n";
     response += "Connection: close\r\n";
     if (status == 405) {
-        response += "Allow: GET, HEAD\r\n";
+        response += "Allow: GET, HEAD, POST, PUT, DELATE\r\n";
     }
     response += "\r\n";
     if (!head_only) {
