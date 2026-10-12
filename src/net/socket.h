@@ -31,6 +31,10 @@ public:
     static Socket connect_to(const char* host, const char* port);
     Socket accept_client() const;
 
+    // Them timeout
+    bool wait_readable(int timeout_ms) const;
+    void set_send_timeout(DWORD timeout_ms) const;
+
     void send_all(std::string_view data) const;
     std::string receive_chunk() const;
     void shutdown_send() const;

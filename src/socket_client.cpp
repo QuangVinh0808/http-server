@@ -1,26 +1,25 @@
 #include "net/socket.h"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 #include <string>
 
 int main() {
     try {
         net::WinsockRuntime runtime;
-        auto server = net::Socket::connect_to("127.0.0.1", "18080");
+        net::Socket client = net::Socket::connect_to("127.0.0.1", "18080");
 
-        std::cout << "Da ket noi toi server\n";
+        const std::string request =
+            "GET /note HTTP/1.1\r\n"
+            "Host: 127.0.0.1:18080\r\n"
+            "Connection: close\r\n"
+            "\r\n";
 
-        const std::string message = "Xin chao server";
-        server.send_all(message);
-        server.shutdown_send();
-
-        const std::string response = net::receive_until_end(server);
-        std::cout << "Server tra loi: " << response << '\n';
-
-        return 0;
+        client.send_all(request);
+        const std::string response = net::receive_until_end(client);
+        std::cout << response;
     } catch (const std::exception& error) {
-        std::cerr << "Loi client: " << error.what() << '\n';
+        std::cerr << "Loi client: " << error.what() << "\n";
         return 1;
     }
 }

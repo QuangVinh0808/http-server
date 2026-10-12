@@ -166,4 +166,35 @@ std::string receive_until_end(const Socket& socket, std::size_t limit) {
     }
 }
 
+bool Socket::wait_readable(int timeout_ms) const {
+    fd_set readers;
+    FD_ZERO(&readers);
+    FD_SET(handle_, &readers);
+
+    timeval timeout{};
+    timeout.tv_sec = timeout_ms / 1000;
+    timeout.tv_usec = (timeout_ms % 1000) * 1000;
+
+    const int ready = ::select(0, &readers, nullptr, nullptr, &timeout);
+    if (ready == SOCKET_ERROR) {
+        fail("select", WSAGetLastError());
+    }
+
+    return ready > 0;
+}
+
+void Socket::set_send_timeout(DWORD timeout_ms) const {
+    const int result = ::setsockopt(
+        handle_,
+        SOL_SOCKET,
+        SO_SNDTIMEO,
+        reinterpret_cast<const char*>(&timeout_ms),
+        static_cast<int>(sizeof(timeout_ms))
+    );
+
+    if (result == SOCKET_ERROR) {
+        fail("setsockopt SO_SNDTIMEO", WSAGetLastError());
+    }
+}
+
 } // namespace net
